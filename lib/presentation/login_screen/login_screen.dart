@@ -6,10 +6,8 @@ import 'package:anubrat_s_application2/widgets/custom_outlined_button.dart';
 import 'package:flutter/material.dart';
 import 'package:anubrat_s_application2/core/app_export.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/Shared_Preferences.dart';
 import 'forgot_password.dart';
-import "../splash_screen/splash_screen.dart";
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -187,10 +185,6 @@ class LoginScreen extends StatelessWidget {
 
   onTapSignIn(BuildContext context) async {
     print("hy");
-
-
-    var sharedPref =await SharedPreferences.getInstance();
-    sharedPref.setBool(SplashScreen.KEYLOGIN, true);`
 
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
