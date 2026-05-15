@@ -11,15 +11,14 @@ import 'forgot_password.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
-// ignore_for_file: must_be_immutable
 class LoginScreen extends StatelessWidget {
   LoginScreen({Key? key}) : super(key: key);
 
-  TextEditingController emailController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
 
-  TextEditingController passwordController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -184,19 +183,17 @@ class LoginScreen extends StatelessWidget {
   }
 
   onTapSignIn(BuildContext context) async {
-    print("hy");
-
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      // Show error message for empty fields
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter both email and password")),
+      );
       return;
     }
     try {
-      // Create user with email and password
-      final UserCredential userCredential = await _auth
-          .signInWithEmailAndPassword(
+      await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -204,25 +201,26 @@ class LoginScreen extends StatelessWidget {
       // Save login status in Shared Preferences
       await SharedPref.saveLoginStatus(true);
 
-      // Handle successful registration (e.g., navigate to dashboard)
-      Navigator.pushNamed(context, AppRoutes.dashboardContainerScreen);
+      // Handle successful login
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.dashboardContainerScreen,
+      );
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        print('The password provided is too weak.');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$e.code'),
-          ),
-        );
-      } else if (e.code == 'email-already-in-use') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('The account already exists for that email.'),
-          ),
-        );
-        Navigator.pushNamed(context, AppRoutes.loginScreen);
-        print('The account already exists for that email.');
+      String message = "Login failed. Please check your credentials.";
+      if (e.code == 'user-not-found' ||
+          e.code == 'wrong-password' ||
+          e.code == 'invalid-credential') {
+        message = "Invalid email or password.";
+      } else if (e.code == 'invalid-email') {
+        message = "The email address is not valid.";
+      } else if (e.code == 'user-disabled') {
+        message = "This account has been disabled.";
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
     } catch (e) {
       print(e);
     }
